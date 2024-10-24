@@ -15,9 +15,7 @@ function love.update(dt)
 end
 
 function love.keypressed(k)
-    if k == "a" then
-        _world:do_step()
-    end
+    _world:keypressed(k)
 end
 
 function love.draw()

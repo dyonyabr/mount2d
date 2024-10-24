@@ -1,7 +1,11 @@
+require "scripts.player"
+
 world = {}
 
 function world:new()
     local obj = {}
+
+    obj._player = player:new()
 
     obj.scale = 5
     obj.shade_diff = .05
@@ -20,7 +24,7 @@ function world:new()
 
     obj.last_step_pos = {x = 0, y = 0}
 
-    obj.player = nil
+    obj._player = player:new()
     obj.steps = {}
 
     obj.cur_step = 0
@@ -37,18 +41,20 @@ function world:new()
     end
     
     function obj:update(dt)
+        obj._player:update(dt)
+        
         for i = 1, #obj.steps do
             obj.steps[i].draw_pos_y = lerp(obj.steps[i].draw_pos_y, obj.steps[i].pos.y, dt * 15)
         end
-
+        
         obj.cam_pos_smooth.x = lerp(obj.cam_pos_smooth.x, obj.cam_pos.x, dt * 10)
         obj.cam_pos_smooth.y = lerp(obj.cam_pos_smooth.y, obj.cam_pos.y, dt * 10)
     end
-
+    
     function obj:do_step()
         obj.cur_step = obj.cur_step + 1
         obj:create_next_step()
-
+        
         local j = 1
         for i = #obj.steps, 1, -1 do
             if i <= obj.cur_step then 
@@ -59,10 +65,15 @@ function world:new()
             end
         end
 
-        obj.cam_pos = {x = love.graphics.getWidth()/(2*obj.scale) - obj.steps[obj.cur_step].pos.x - 4,
-        y = love.graphics.getHeight()/(2*obj.scale) - obj.steps[obj.cur_step].pos.y + 32}
-    end
+        local cur_step_pos = {x = obj.steps[obj.cur_step].pos.x, y = obj.steps[obj.cur_step].pos.y}
 
+        obj._player.pos.x = cur_step_pos.x
+        obj._player.pos.y = cur_step_pos.y
+        
+        obj.cam_pos = {x = love.graphics.getWidth()/(2*obj.scale) - cur_step_pos.x - 4,
+        y = love.graphics.getHeight()/(2*obj.scale) - cur_step_pos.y + 24}
+    end
+    
     function obj:create_next_step()
         -- if #obj.steps > obj.max_steps then table.remove(obj.steps, 1) end
         local lr = math.floor(love.math.noise(#obj.steps*.2) + .5) * 2 - 1
@@ -88,6 +99,7 @@ function world:new()
                 love.graphics.draw(atlas, obj.stone, obj.steps[i].pos.x, obj.steps[i].draw_pos_y + 8*j)
             end
         end
+        obj._player:draw()
     end
     
     function obj:create_step(pos, type)
@@ -97,6 +109,10 @@ function world:new()
         step.draw_pos_y = pos.y + 100
         step.snow = love.math.random(1, 4);
         return step
+    end
+
+    function obj:keypressed(k)
+        obj._player:keypressed(k)
     end
 
     setmetatable(obj, self)
