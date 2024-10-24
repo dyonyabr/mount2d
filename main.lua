@@ -1,11 +1,19 @@
-vector = require("lib.vector")
+require "lib.tools"
+
+require "scripts.world"
+
+_world = world:new() 
 
 function love.load()
+    love.graphics.setDefaultFilter("nearest", "nearest")
+    atlas = love.graphics.newImage("assets/textures/atlas.png");
+    _world:load()
 end
 
 function love.update(dt)
+    _world:update(dt)
 end
 
 function love.draw()
-    love.graphics.setBackgroundColor(0,0,0);
+    _world:draw()
 end
