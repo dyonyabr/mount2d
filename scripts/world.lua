@@ -36,9 +36,7 @@ function world:new()
         love.graphics.translate(love.graphics.getWidth()/2, love.graphics.getHeight()/2)
         love.graphics.scale(5)
         love.graphics.translate(-4, 0)
-        
-        love.graphics.print("mount", 2, 2)
-        
+
         love.graphics.setColor(1, 1, 1)
         for i = 1, #obj.steps do
             love.graphics.draw(atlas, obj.snow_top, obj.steps[i].pos.x, obj.steps[i].draw_pos_y)
