@@ -19,5 +19,7 @@ function love.keypressed(k)
 end
 
 function love.draw()
+    love.graphics.print(love.timer.getFPS(), love.graphics.translate(0, 0))
     _world:draw()
+
 end

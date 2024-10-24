@@ -7,6 +7,7 @@ function player:new()
 
     obj.pos = {x =  0; y = 0}
     obj.draw_pos = {x =  0; y = 0}
+    obj.impact = {x = 0, y = 0}
     obj.side = 1
 
     function obj:load()
@@ -14,12 +15,15 @@ function player:new()
     end
 
     function obj:update(dt)
-        obj.draw_pos.x = lerp(obj.draw_pos.x, obj.pos.x, dt * 20)
-        obj.draw_pos.y = lerp(obj.draw_pos.y, obj.pos.y, dt * 20)
+        obj.impact.x = lerp(obj.impact.x, 0, dt * 20)
+        obj.impact.y = lerp(obj.impact.y, 0, dt * 20)
+
+        obj.draw_pos.x = lerp(obj.draw_pos.x, obj.pos.x + obj.impact.x, dt * 20)
+        obj.draw_pos.y = lerp(obj.draw_pos.y, obj.pos.y + obj.impact.y, dt * 20)
     end
 
     function obj:draw()
-        love.graphics.draw(atlas, obj.quad, obj.draw_pos.x, obj.draw_pos.y, 0, obj.side, 1)
+        love.graphics.draw(atlas, obj.quad, obj.draw_pos.x + (-obj.side + 1)/2 * 8, obj.draw_pos.y, 0, obj.side, 1)
     end
 
     function obj:keypressed(k)
@@ -31,7 +35,8 @@ function player:new()
     end
 
     function obj:do_step(dir)
-        side = dir
+        obj.impact.y = -10
+        obj.side = dir
         _world:do_step()
     end
 
