@@ -7,7 +7,8 @@ uniform number shade_b;
 vec4 effect(vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords)
 {
     vec4 pixel = Texel(texture, texture_coords);
-    pixel = mix(pixel, vec4(shade_r, shade_g, shade_b, pixel.a), 1-shade);
+    pixel = mix(pixel, vec4(shade_r, shade_g, shade_b, pixel.a), .25);
+    pixel = mix(pixel, vec4(shade_r, shade_g, shade_b, pixel.a), pow(1-shade, 2));
     return pixel;
 }
 

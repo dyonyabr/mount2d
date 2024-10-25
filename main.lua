@@ -4,11 +4,11 @@ Timer = require "lib.Timer"
 require "scripts.world"
 
 _world = world:new() 
-default_font = love.graphics.newFont("assets/fonts/font.ttf")
+default_font = love.graphics.newFont("assets/fonts/font.ttf", 16)
 
 function love.load()
     love.graphics.setDefaultFilter("nearest", "nearest")
-    default_font:setFilter("nearest")
+    default_font:setFilter("nearest", "nearest")
     atlas = love.graphics.newImage("assets/textures/atlas.png");
     _world:load()
 end

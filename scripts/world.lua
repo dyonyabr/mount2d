@@ -9,18 +9,18 @@ function world:new()
     obj.day_cycle_timer = Timer()
 
     obj.cycle_colors = {
-        {color = {0.74, 0.86, 0.95}, duration = 6},   -- Pale Dawn (6 seconds)
-        {color = {0.60, 0.78, 0.88}, duration = 6},   -- Soft Morning (6 seconds)
-        {color = {0.42, 0.66, 0.82}, duration = 6},   -- Cool Mid Morning (6 seconds)
-        {color = {0.30, 0.54, 0.76}, duration = 6},   -- Calm Late Morning (6 seconds)
-        {color = {0.15, 0.10, 0.20}, duration = 6},  -- Very Dark Twilight (12 seconds)
+        {color = {0.74, 0.86, 0.95}, duration = 6 },   -- Pale Dawn (6 seconds)
+        {color = {0.60, 0.78, 0.88}, duration = 6 },   -- Soft Morning (6 seconds)
+        {color = {0.42, 0.66, 0.82}, duration = 6 },   -- Cool Mid Morning (6 seconds)
+        {color = {0.30, 0.54, 0.76}, duration = 6 },   -- Calm Late Morning (6 seconds)
+        {color = {0.15, 0.10, 0.20}, duration = 6 },  -- Very Dark Twilight (12 seconds)
         {color = {0.02, 0.02, 0.05}, duration = 12},   -- Almost Black Midnight (12 seconds)
-        {color = {0.02, 0.02, 0.05}, duration = 3},  -- Night
-        {color = {0.1, 0.1, 0.2}, duration = 3},    -- Twilight
-        {color = {0.4, 0.2, 0.3}, duration = 3},    -- Warm Pink
-        {color = {0.6, 0.4, 0.2}, duration = 3},    -- Soft Orange
-        {color = {0.9, 0.7, 0.4}, duration = 3},    -- Golden Yellow
-        {color = {0.74, 0.86, 0.95}, duration = 3}   -- Bright Day
+        {color = {0.02, 0.02, 0.05}, duration = 3 },  -- Night
+        {color = {0.1 , 0.1 , 0.2 }, duration = 3 },    -- Twilight
+        {color = {0.4 , 0.2 , 0.3 }, duration = 3 },    -- Warm Pink
+        {color = {0.6 , 0.4 , 0.2 }, duration = 3 },    -- Soft Orange
+        {color = {0.9 , 0.7 , 0.4 }, duration = 3 },    -- Golden Yellow
+        {color = {0.74, 0.86, 0.95}, duration = 3 }   -- Bright Day
     }
     obj.steps_to_cycle = 50
     obj.cur_cycle_grade = 0
@@ -41,7 +41,7 @@ function world:new()
     end
     
     obj.scale = 5
-    obj.shade_diff = .05
+    obj.shade_diff = .1
     obj.max_steps = 40
     
     obj.snow_top =     love.graphics.newQuad(0  , 0  , 8, 8, 128, 128)
@@ -95,8 +95,10 @@ function world:new()
         
         for i = 1, #obj.steps do
             obj.steps[i].draw_pos_y = lerp(obj.steps[i].draw_pos_y, obj.steps[i].pos.y, dt * 10)
+            obj.steps[i].draw_shade = lerp(obj.steps[i].draw_shade, obj.steps[i].shade, dt * 20)  
             if obj.steps[i].add ~= nil then
                 obj.steps[i].add.draw_pos_y = lerp(obj.steps[i].add.draw_pos_y, obj.steps[i].add.pos.y, dt * 8)
+                obj.steps[i].add.draw_shade = lerp(obj.steps[i].add.draw_shade, obj.steps[i].add.shade, dt * 20)  
             end
         end
         
@@ -123,10 +125,14 @@ function world:new()
         obj.cam_pos = {x = love.graphics.getWidth()/(2*obj.scale) - cur_step_pos.x - 4,
         y = love.graphics.getHeight()/(2*obj.scale) - cur_step_pos.y + 24}
 
-        local j = 1
+        local j = #obj.steps
         for i = #obj.steps, 1, -1 do
-            obj.steps[i].shade = j * obj.shade_diff
-            j = j + 1
+            if i >= obj.cur_step then
+                obj.steps[i].shade = (#obj.steps-j) * obj.shade_diff/2
+                j = j - 1
+            else 
+                obj.steps[i].shade = 1
+            end
         end
     end
     
@@ -141,7 +147,7 @@ function world:new()
             obj.steps[#obj.steps].add = obj:create_step(pos, "add", -lr)
             if love.math.random(0, 10) < 7 then
                 local chance = love.math.random(0, 10) 
-                if chance < 5 then
+                if chance < 4 then
                     obj.steps[#obj.steps].add.obstacle = {name = "spike"}
                 elseif chance <= 10 then
                     obj.steps[#obj.steps].add.obstacle = {name = "tree"}
@@ -155,13 +161,17 @@ function world:new()
     
     function obj:draw()
         love.graphics.setBackgroundColor(obj.bg_color[1], obj.bg_color[2], obj.bg_color[3])
+
+        love.graphics.push()
+        
         love.graphics.scale(obj.scale)
         love.graphics.translate(obj.cam_pos_smooth.x, obj.cam_pos_smooth.y)    
         
+        love.graphics.setColor(1,1,1,1)
         for i =  #obj.steps, 1, -1 do
-            obj:draw_step(obj.steps[i].pos.x, obj.steps[i].draw_pos_y, obj.steps[i].snow, obj.steps[i].shade)
+            obj:draw_step(obj.steps[i].pos.x, obj.steps[i].draw_pos_y, obj.steps[i].snow, obj.steps[i].draw_shade)
             if obj.steps[i].add ~= nil then
-                obj:draw_step(obj.steps[i].add.pos.x, obj.steps[i].add.draw_pos_y, obj.steps[i].add.snow, obj.steps[i].shade, obj.steps[i].add.obstacle)
+                obj:draw_step(obj.steps[i].add.pos.x, obj.steps[i].add.draw_pos_y, obj.steps[i].add.snow, obj.steps[i].draw_shade, obj.steps[i].add.obstacle)
             end
             if obj.cur_step == i then
                 love.graphics.setShader()
@@ -169,9 +179,17 @@ function world:new()
             end
         end
 
+        love.graphics.setShader()
+        
+        love.graphics.pop()
+
         love.graphics.origin()
-        love.graphics.setFont(default_font)
-        love.graphics.print(obj.score, 4 * obj.scale, 4 * obj.scale, 0, obj.scale)
+        love.graphics.scale(obj.scale)
+        love.graphics.setColor(0.024, 0.353, 0.710, 1)
+        love.graphics.printf(obj.score, default_font, 1, 5, love.graphics.getWidth()/obj.scale, "center")
+        -- love.graphics.setColor(1-obj.bg_color[1], 1-obj.bg_color[2], 1-obj.bg_color[3], 1)
+        love.graphics.setColor(1, 1, 1, 1)
+        love.graphics.printf(obj.score, default_font, 0, 4, love.graphics.getWidth()/obj.scale, "center")
     end
 
     function obj:draw_step(x, y, snow, shade, obstacle)
@@ -206,6 +224,8 @@ function world:new()
         step.pos = pos
         step.side = side
         step.type = type
+        step.draw_shade = 0
+        step.shade = 0
         step.draw_pos_y = pos.y + 100
         step.snow = love.math.random(1, 4);
         if type == "add" then
