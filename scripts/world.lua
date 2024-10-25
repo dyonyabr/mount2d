@@ -28,6 +28,7 @@ function world:new()
     obj.steps = {}
 
     obj.cur_step = 0
+    obj.cur_step_type = ""
     obj.cam_pos = {x = 0, y = 0}
     obj.cam_pos_smooth = {x = 0, y = 0}
 
@@ -36,7 +37,7 @@ function world:new()
             obj:create_next_step()
         end
         for i = 1, 15 do
-            obj:do_step()
+            obj:do_step("default")
         end
     end
     
@@ -54,34 +55,41 @@ function world:new()
         obj.cam_pos_smooth.y = lerp(obj.cam_pos_smooth.y, obj.cam_pos.y, dt * 10)
     end
     
-    function obj:do_step()
+    function obj:do_step(type)
         obj.cur_step = obj.cur_step + 1
+        obj.cur_step_type = type
         obj:create_next_step()
-        
-        local j = 1
-        for i = #obj.steps, 1, -1 do
-            obj.steps[i].shade = j * obj.shade_diff
-            j = j + 1
+
+        local step = {}
+        if type == "default" then
+            step = obj.steps[obj.cur_step]
+        elseif type == "add" then
+            step = obj.steps[obj.cur_step].add
         end
-
-        local cur_step_pos = {x = obj.steps[obj.cur_step].pos.x, y = obj.steps[obj.cur_step].pos.y}
-
+        local cur_step_pos = {x = step.pos.x, y = step.pos.y}
+        
         obj._player.pos.x = cur_step_pos.x
         obj._player.pos.y = cur_step_pos.y - 5
         
         obj.cam_pos = {x = love.graphics.getWidth()/(2*obj.scale) - cur_step_pos.x - 4,
         y = love.graphics.getHeight()/(2*obj.scale) - cur_step_pos.y + 24}
+
+        local j = 1
+        for i = #obj.steps, 1, -1 do
+            obj.steps[i].shade = j * obj.shade_diff
+            j = j + 1
+        end
     end
     
     function obj:create_next_step()
         -- if #obj.steps > obj.max_steps then table.remove(obj.steps, 1) end
         local lr = math.floor(love.math.noise(#obj.steps*.2) + .5) * 2 - 1
         obj.steps[#obj.steps+1] = obj:create_step({x = obj.last_step_pos.x + lr * 4,
-        y = obj.last_step_pos.y - 5}, "default");
+        y = obj.last_step_pos.y - 5}, "default", lr);
         
         if love.math.random(0, 10) < 4  and #obj.steps > 1 then
             local pos = {x = obj.last_step_pos.x - lr * 4, y = obj.last_step_pos.y - 5}
-            obj.steps[#obj.steps].add = obj:create_step(pos, "add")
+            obj.steps[#obj.steps].add = obj:create_step(pos, "add", -lr)
             if love.math.random(0, 10) < 7 then
                 obj.steps[#obj.steps].add.obstacle = "spike"
             end
@@ -123,9 +131,11 @@ function world:new()
         end
     end
     
-    function obj:create_step(pos, type)
+    function obj:create_step(pos, type, side)
         local step = {}
         step.pos = pos
+        step.side = side
+        step.type = type
         step.draw_pos_y = pos.y + 100
         step.snow = love.math.random(1, 4);
         if type == "add" then

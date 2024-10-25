@@ -1,7 +1,9 @@
 require "lib.tools"
+Timer = require "lib.Timer"
 
 require "scripts.world"
 
+timer = Timer()
 _world = world:new() 
 
 function love.load()
@@ -11,6 +13,7 @@ function love.load()
 end
 
 function love.update(dt)
+    timer:update(dt)
     _world:update(dt)
 end
 
@@ -19,7 +22,5 @@ function love.keypressed(k)
 end
 
 function love.draw()
-    love.graphics.print(love.timer.getFPS(), love.graphics.translate(0, 0))
     _world:draw()
-
 end
